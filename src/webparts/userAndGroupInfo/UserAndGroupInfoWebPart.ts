@@ -9,8 +9,6 @@ import { BaseClientSideWebPart } from "@microsoft/sp-webpart-base";
 import * as strings from "UserAndGroupInfoWebPartStrings";
 import UserAndGroupInfo from "./components/UserAndGroupInfo";
 import { IUserAndGroupInfoProps } from "./components/IUserAndGroupInfoProps";
-import { sp } from "@pnp/sp";
-import { graph } from "@pnp/graph";
 
 export interface IUserAndGroupInfoWebPartProps {
   description: string;
@@ -20,20 +18,14 @@ export default class UserAndGroupInfoWebPart extends BaseClientSideWebPart<IUser
   @override
   public async onInit(): Promise<void> {
     await super.onInit();
-    console.log("Initialising SPFX context", this.context);
+    console.debug("Initialising SPFX context", this.context);
     pnpSetup({ spfxContext: this.context });
-
-    const getCurrentUserPromise = sp.web.currentUser();
-    const currentUser = await getCurrentUserPromise;
-
-    console.log("Current user from onInit", currentUser);
-
-    const aadCurrentUser = await graph.me();
-    console.log("AAD user", aadCurrentUser);
   }
 
   public render(): void {
-    const element: React.ReactElement<IUserAndGroupInfoProps> = React.createElement(UserAndGroupInfo, {});
+    const element: React.ReactElement<IUserAndGroupInfoProps> = React.createElement(UserAndGroupInfo, {
+      context: this.context,
+    });
 
     ReactDom.render(element, this.domElement);
   }
