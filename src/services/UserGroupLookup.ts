@@ -25,8 +25,8 @@ export interface ISpGroupMembership {
 class UserGroupLookup {
   private spUserAndMemberGroupsPromises: Map<number, Promise<ISiteUserInfo>> = new Map();
   private aadUserPromises: Map<number, Promise<any>> = new Map();
-  private currentAadUserGroupIds: Promise<string[]>;
-  private aadGroupSpMemberships: Promise<ISpGroupMembership[]>;
+  private aadUserGroupIdsPromises: Map<number, Promise<string[]>> = new Map();
+  private aadGroupSpMembershipsPromises: Map<number, Promise<ISpGroupMembership[]>> = new Map();
 
   /**
    * Returns the specified user's membership of SP site groups where:
@@ -41,8 +41,8 @@ class UserGroupLookup {
    * If the id property is 0 then the current user's information is retrieved.
    */
   public async getUserMemberships(siteUserIdentifier: ISiteUserIdentifiers): Promise<ISpGroupMembership[]> {
-    const userDirectMemberships = await this.getCurrentSpUserMemberships(siteUserIdentifier.id);
-    const aadGroupMemberships = await this.getAadGroupSpMemberships();
+    const userDirectMemberships = await this.getSpUserMemberships(siteUserIdentifier.id);
+    const aadGroupMemberships = await this.getAadGroupSpMemberships(siteUserIdentifier);
 
     return [...userDirectMemberships, ...aadGroupMemberships];
   }
@@ -59,21 +59,34 @@ class UserGroupLookup {
     }
   }
 
-  private async getCurrentSpUserMemberships(siteUserId: number): Promise<ISpGroupMembership[]> {
-    const currentSiteUserInfo = await this.getSpUserAndMemberGroupsPromise(siteUserId);
+  private async getSpUserMemberships(siteUserId: number): Promise<ISpGroupMembership[]> {
+    const siteUserInfo = await this.getSpUserAndMemberGroupsPromise(siteUserId);
     // There MUST be a better way to do this rather than casting.
     // We know that the ISiteUserInfo was expanded to include Groups, but the ISiteUserInfo type
     // doesn't have the Groups property. There is probably something I should be doing with union
     // types here!
-    return ((currentSiteUserInfo as any).Groups as ISiteGroupInfo[]).map((siteGroup) => {
-      return {
-        spGroup: siteGroup.Title,
-        spGroupId: siteGroup.Id,
-        membershipViaPrincipalName: currentSiteUserInfo.UserPrincipalName,
-        membershipViaPrincipalType: currentSiteUserInfo.PrincipalType,
-        membershipViaPrincipalSpId: currentSiteUserInfo.Id,
-      };
-    });
+    const siteGroups = (siteUserInfo as any).Groups as ISiteGroupInfo[];
+    if (siteGroups.length) {
+      return siteGroups.map((siteGroup) => {
+        return {
+          spGroup: siteGroup.Title,
+          spGroupId: siteGroup.Id,
+          membershipViaPrincipalName: siteUserInfo.UserPrincipalName,
+          membershipViaPrincipalType: siteUserInfo.PrincipalType,
+          membershipViaPrincipalSpId: siteUserInfo.Id,
+        };
+      });
+    } else {
+      return [
+        {
+          spGroup: undefined,
+          spGroupId: undefined,
+          membershipViaPrincipalName: siteUserInfo.Title,
+          membershipViaPrincipalType: siteUserInfo.PrincipalType,
+          membershipViaPrincipalSpId: siteUserInfo.Id,
+        },
+      ];
+    }
   }
 
   public async getAadUser(siteUserIdentifier: ISiteUserIdentifiers): Promise<IUser> {
@@ -93,34 +106,51 @@ class UserGroupLookup {
     }
   }
 
-  private getCurrentAadUserGroupIds() {
-    if (!this.currentAadUserGroupIds) {
-      this.currentAadUserGroupIds = graph.me.getMemberGroups();
+  private getAadUserGroupIds(siteUserIdentifier: ISiteUserIdentifiers): Promise<string[]> {
+    if (this.aadUserGroupIdsPromises.has(siteUserIdentifier.id)) {
+      return this.aadUserGroupIdsPromises.get(siteUserIdentifier.id);
+    } else {
+      let aadUserGroupIds: Promise<string[]>;
+      if (siteUserIdentifier.id) {
+        console.debug("Getting AAD group ids for user by email:", siteUserIdentifier.email);
+        aadUserGroupIds = graph.users.getById(siteUserIdentifier.email).getMemberGroups();
+      } else {
+        console.debug("Getting AAD group ids for current user");
+        aadUserGroupIds = graph.me.getMemberGroups();
+      }
+      this.aadUserGroupIdsPromises.set(siteUserIdentifier.id, aadUserGroupIds);
+      return aadUserGroupIds;
     }
-    return this.currentAadUserGroupIds;
   }
 
-  private getAadGroupSpMemberships(): Promise<ISpGroupMembership[]> {
-    if (!this.aadGroupSpMemberships) {
-      this.aadGroupSpMemberships = this.populateAAdGroupsAsSpUsers();
+  private getAadGroupSpMemberships(siteUserIdentifier: ISiteUserIdentifiers): Promise<ISpGroupMembership[]> {
+    if (this.aadGroupSpMembershipsPromises.has(siteUserIdentifier.id)) {
+      return this.aadGroupSpMembershipsPromises.get(siteUserIdentifier.id);
+    } else {
+      const aadGroupSpMemberships = this.populateAAdGroupsAsSpUsers(siteUserIdentifier);
+      this.aadGroupSpMembershipsPromises.set(siteUserIdentifier.id, aadGroupSpMemberships);
+      return aadGroupSpMemberships;
     }
-    return this.aadGroupSpMemberships;
   }
 
-  private async populateAAdGroupsAsSpUsers(): Promise<ISpGroupMembership[]> {
-    const aadGroupIds = await this.getCurrentAadUserGroupIds();
+  private async populateAAdGroupsAsSpUsers(siteUserIdentifier: ISiteUserIdentifiers): Promise<ISpGroupMembership[]> {
+    const aadGroupIds = await this.getAadUserGroupIds(siteUserIdentifier);
+    console.debug("Retrieved AAD group ids for user", siteUserIdentifier, aadGroupIds);
+    if (aadGroupIds.length === 0) {
+      return Promise.resolve([]);
+    }
+
     const filter = aadGroupIds.map((id) => `substringof('|${id}',LoginName)`).join(" or ");
     const groupSiteUserInfos = await sp.web.siteUsers.filter(filter).get();
+    console.debug("Found SP site users corresponding to AAD groups", groupSiteUserInfos);
 
-    return groupSiteUserInfos.map((groupSiteUserInfo) => {
-      return {
-        spGroup: undefined,
-        spGroupId: undefined,
-        membershipViaPrincipalName: groupSiteUserInfo.Title,
-        membershipViaPrincipalType: groupSiteUserInfo.PrincipalType,
-        membershipViaPrincipalSpId: groupSiteUserInfo.Id,
-      };
-    });
+    const groupSiteUserMembershipsPromises = groupSiteUserInfos.map((groupSiteUserInfo) =>
+      this.getSpUserMemberships(groupSiteUserInfo.Id)
+    );
+
+    const groupSiteUserMemberships = await Promise.all(groupSiteUserMembershipsPromises);
+
+    return ([] as ISpGroupMembership[]).concat(...groupSiteUserMemberships);
   }
 }
 
