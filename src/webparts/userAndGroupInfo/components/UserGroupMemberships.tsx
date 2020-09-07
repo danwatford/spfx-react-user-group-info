@@ -1,7 +1,6 @@
 import * as React from "react";
 import { useState } from "react";
-import { Overlay, Spinner, SpinnerSize } from "office-ui-fabric-react";
-import { ISpGroupMembership } from "../../../services/UserGroupLookup";
+import { ISpGroupMembership } from "../../../services/SpUserGroupLookup";
 import { DetailsList, IColumn } from "office-ui-fabric-react/lib/DetailsList";
 import { PrincipalType } from "@pnp/sp";
 
@@ -92,12 +91,15 @@ const UserGroupMemberships: React.FunctionComponent<IUserGroupMembershipsProps> 
   }, [props.membershipsPromise]);
 
   return loading ? (
-    <Overlay isDarkThemed>
-      <Spinner size={SpinnerSize.large} />
-    </Overlay>
+    <h4>User's Group Information - Loading...</h4>
   ) : (
     <div>
-      <DetailsList items={memberships} columns={columns} />
+      <h4>User's Group Information</h4>
+      {memberships.length ? (
+        <DetailsList items={memberships} columns={columns} />
+      ) : (
+        <p style={{ textAlign: "center" }}>User is not a member of any AAD groups known to this SharePoint site</p>
+      )}
     </div>
   );
 };
