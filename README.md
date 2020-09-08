@@ -1,8 +1,10 @@
-# user-group-info
+# Site User and Group Information
 
 ## Summary
 
-Web Part that displays SharePoint user ids for the current user and any Active AD groups they are a member of which are known to the SharePoint site.
+Looks up the SharePoint site user/group ids related to a user. Azure AD groups that the user belongs to, and which are known to the SharePoint site, are also displayed.
+
+Note: Azure AD Groups are represented as Site Users in SharePoint.
 
 ## Used SharePoint Framework Version
 
@@ -17,19 +19,19 @@ Web Part that displays SharePoint user ids for the current user and any Active A
 
 ## Prerequisites
 
-Access to a SharePoint online site with various users granted access to various resources directory, via AAD groups and via SharePoint groups.
+Access to a SharePoint online site with various tenant users granted access to various site resources directly, via AAD groups and via SharePoint groups.
 
 ## Solution
 
-| Solution      | Author(s)                                                                                               |
-| ------------- | ------------------------------------------------------------------------------------------------------- |
-| UserGroupInfo | Daniel Watford (https://twitter.com/DanWatford), Watford Consulting Ltd (https://watfordconsulting.com) |
+| Solution                  | Author(s)                                                                                               |
+| ------------------------- | ------------------------------------------------------------------------------------------------------- |
+| react-sp-site-user-groups | Daniel Watford (https://twitter.com/DanWatford), Watford Consulting Ltd (https://watfordconsulting.com) |
 
 ## Version history
 
 | Version | Date              | Comments        |
 | ------- | ----------------- | --------------- |
-| 0.0.1   | September 2, 2020 | Initial release |
+| 0.0.1   | September 8, 2020 | Initial release |
 
 ## Disclaimer
 
@@ -51,33 +53,35 @@ Access to a SharePoint online site with various users granted access to various 
 
 ## Features
 
-This webpart was created to better understand the relationship between AAD users, AAD groups, SP User and SP Groups.
+This webpart was created to better understand the relationship between AAD users, AAD groups, SP User and SP Groups. In particular I was interested in how SP site user/group ids are mapped to the 4 principal types so that I might match a user against values entered in a SP People column which also accepted group values.
 
 Experiment by granting permissions directly to some users for a site, directly to an AAD group for a site, and to a SP group where the membership consists of the AAD user or nested AAD groups.
 
-This webpart was created to help understand the Id values that are read from a Person column in a List View Command Set extensions.
+Pick a user to retrieve information for by either searching for the user in the tenant-wide People Picker, or by choosing from the site's current set of users.
 
-## Display current user's membership of AAD and SP groups
+For the principals found that relate to a user links are provided to the relevant site user/group view.
 
-Note the highlighted SP User Ids.
-![MyTasks](assets/screen1.png)
+## Display user's membership of AAD and SP groups
 
-## SharePoint Group Display
+When the webpart is first loaded the current user is selected.
 
-To view details of a SharePoint user (which appears to include synchronised AAD groups) or a SharePoint group visit https://_tenant_.sharepoint.com/site/_sitename_/_layouts/userdisp.aspx?ID=20, altering the ID value to match one of the SP Ids displayed by the webpart.
+Details of the user's membership of SP and AAD groups are shown, along with corresponding SP site user/group ids (highlighted).
+![MyTasks](./assets/screen1.png)
 
-When visiting the URL you will likely be redirected one of the following types of views:
+## Select User
 
-- Details of a SharePoint group with a list of group members.
-- Details of a SharePoint user which represents an AAD group.
-- Delve view of the SharePoint user's profile.
+The user can be selected from the tenant-wide People Picker control.
+Click the X to clear the currently selected user and then start typing the name of the next user. The People Picker will search across all tenant users as you type.
+![MyTasks](./assets/screen2.png)
 
-In the following screenshop the highlighted SP Group Id in the URL corresponds to the X Approvers group Id shown in the webpart.
-![MyTasks](assets/screen2.png)
-
-The next screenshop shows the SharePoint User Information view which corresponds to an AAD group.
-![MyTasks](assets/screen3.png)
+You can also select a user from the current set of site users.
+Click on the /Select site user/ button and choose a user from the list displayed on the panel.
+![MyTasks](./assets/screen3.png)
 
 ## References
 
 - [User profile synchronization](https://docs.microsoft.com/en-us/sharepoint/user-profile-sync)
+
+---
+
+<img src="https://telemetry.sharepointpnp.com/sp-dev-fx-webparts/samples/react-sp-site-user-groups" />
