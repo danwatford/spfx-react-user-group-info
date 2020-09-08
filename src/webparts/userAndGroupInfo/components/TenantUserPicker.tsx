@@ -23,11 +23,9 @@ const TenantUserPicker: React.FunctionComponent<ITenantUserPickerProps> = (props
   return (
     <PeoplePicker
       context={props.context}
-      titleText="User"
-      placeholder="Enter user name"
+      placeholder="Enter tenant user name"
       principalTypes={[PrincipalType.User]}
       selectedItems={selectedItemsHandler}
-      webAbsoluteUrl={props.context.pageContext.web.absoluteUrl}
       ensureUser={false}
       defaultSelectedUsers={[props.pickedUserEmail]}
     />

@@ -1,8 +1,12 @@
 import * as React from "react";
+import { WebPartContext } from "@microsoft/sp-webpart-base";
+import { useConstCallback } from "@uifabric/react-hooks";
+import { DefaultButton } from "office-ui-fabric-react";
+import { Panel } from "office-ui-fabric-react/lib/Panel";
 import { TextField } from "office-ui-fabric-react/lib/TextField";
 import { List } from "office-ui-fabric-react/lib/List";
 import { Persona } from "office-ui-fabric-react/lib/Persona";
-import { WebPartContext } from "@microsoft/sp-webpart-base";
+
 import SpUserGroupLookup from "../../../services/SpUserGroupLookup";
 import { ISiteUserInfo } from "@pnp/sp/site-users/types";
 
@@ -15,6 +19,7 @@ export interface ISiteUserPickerProps {
 }
 
 const SiteUserPicker: React.FunctionComponent<ISiteUserPickerProps> = (props) => {
+  const [isOpen, setIsOpen] = React.useState(false);
   const [filter, setFilter] = React.useState("");
   const [siteUserInfos, setSiteUserInfos] = React.useState([] as ISiteUserInfo[]);
   const [filteredSiteUserInfos, setFilteredSiteUserInfos] = React.useState([]);
@@ -36,6 +41,9 @@ const SiteUserPicker: React.FunctionComponent<ISiteUserPickerProps> = (props) =>
     setFilteredSiteUserInfos([...filteredSiteUserInfos]);
   }, [selectedUser]);
 
+  const openPanel = useConstCallback(() => setIsOpen(true));
+  const dismissPanel = useConstCallback(() => setIsOpen(false));
+
   const onFilter = (ev: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, text: string): void => {
     setFilter(text);
   };
@@ -43,18 +51,14 @@ const SiteUserPicker: React.FunctionComponent<ISiteUserPickerProps> = (props) =>
   const personaClickedHandler = (siteUserInfo: ISiteUserInfo) => {
     console.log("Click for " + siteUserInfo.Id);
     setSelectedUser(siteUserInfo);
+    setIsOpen(false);
     props.onSelectedUserChanged(siteUserInfo.Id, siteUserInfo.Email);
   };
 
-  const onRenderCell = (item: ISiteUserInfo, index: number | undefined) => {
+  const onRenderCell = (item: ISiteUserInfo) => {
     const classes = [styles.SiteUser];
     if (item === selectedUser) {
       classes.push(styles.Active);
-    }
-
-    console.log("Render item", item);
-    if (selectedUser) {
-      console.log("Selected item", selectedUser);
     }
 
     return (
@@ -66,8 +70,17 @@ const SiteUserPicker: React.FunctionComponent<ISiteUserPickerProps> = (props) =>
 
   return (
     <>
-      <TextField label="Filter by Name:" onChange={onFilter} />
-      <List className={styles.SiteUserList} items={filteredSiteUserInfos} onRenderCell={onRenderCell} />
+      <DefaultButton text="Select site user" onClick={openPanel} />
+      <Panel
+        isOpen={isOpen}
+        isLightDismiss
+        onDismiss={dismissPanel}
+        closeButtonAriaLabel="Close"
+        headerText="Select site user"
+      >
+        <TextField label="Filter by Name:" value={filter} onChange={onFilter} />
+        <List className={styles.SiteUserList} items={filteredSiteUserInfos} onRenderCell={onRenderCell} />
+      </Panel>
     </>
   );
 };
