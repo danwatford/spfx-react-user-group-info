@@ -124,13 +124,21 @@ class SpUserGroupLookup {
           return {
             spGroup: siteGroup.Title,
             spGroupId: siteGroup.Id,
-            membershipViaPrincipalName: siteUserInfo.UserPrincipalName,
+            membershipViaPrincipalName: siteUserInfo.Title,
             membershipViaPrincipalType: siteUserInfo.PrincipalType,
             membershipViaPrincipalSpId: siteUserInfo.Id,
           };
         });
       } else {
-        return [];
+        return [
+          {
+            spGroup: undefined,
+            spGroupId: undefined,
+            membershipViaPrincipalName: siteUserInfo.Title,
+            membershipViaPrincipalType: siteUserInfo.PrincipalType,
+            membershipViaPrincipalSpId: siteUserInfo.Id,
+          },
+        ];
       }
     } else {
       return [];
