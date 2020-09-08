@@ -18,11 +18,11 @@ const UserAndGroupInfo: React.FunctionComponent<IUserAndGroupInfoProps> = (props
   // Since we are defaulting to the current user we can consider that a user is selected.
   const [userIsSelected, setUserIsSelected] = React.useState(true);
 
-  const onSelectedUserChanged = (siteUserId: number, email: string) => {
-    console.debug("Selected user changed.", siteUserId, email);
-    setSiteUserId(siteUserId);
-    setEmail(email);
-    setUserIsSelected(siteUserId !== undefined || email !== undefined);
+  const onSelectedUserChanged = (selectedSiteUserId: number, selectedEmail: string) => {
+    console.debug("Selected user changed.", selectedSiteUserId, selectedEmail);
+    setSiteUserId(selectedSiteUserId);
+    setEmail(selectedEmail);
+    setUserIsSelected(selectedSiteUserId !== undefined || selectedEmail !== undefined);
   };
 
   let selectedUserContent;

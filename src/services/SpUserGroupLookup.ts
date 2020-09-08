@@ -107,6 +107,10 @@ class SpUserGroupLookup {
     }
   }
 
+  public async getSpSiteUsers(): Promise<ISiteUserInfo[]> {
+    return sp.web.siteUsers.filter("PrincipalType eq " + PrincipalType.User).get();
+  }
+
   private async getSpUserMemberships(siteUserId: number): Promise<ISpGroupMembership[]> {
     const siteUserInfo = await this.getSpUserAndMemberGroupsPromise(siteUserId);
     // There MUST be a better way to do this rather than casting.

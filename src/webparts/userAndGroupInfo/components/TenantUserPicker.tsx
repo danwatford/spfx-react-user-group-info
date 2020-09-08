@@ -4,6 +4,7 @@ import { WebPartContext } from "@microsoft/sp-webpart-base";
 
 export interface ITenantUserPickerProps {
   context: WebPartContext;
+  pickedUserEmail: string;
   onPickedTenantUserChanged: (loginName: string) => void;
 }
 
@@ -28,7 +29,7 @@ const TenantUserPicker: React.FunctionComponent<ITenantUserPickerProps> = (props
       selectedItems={selectedItemsHandler}
       webAbsoluteUrl={props.context.pageContext.web.absoluteUrl}
       ensureUser={false}
-      defaultSelectedUsers={[props.context.pageContext.user.email]}
+      defaultSelectedUsers={[props.pickedUserEmail]}
     />
   );
 };
