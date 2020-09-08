@@ -30,10 +30,14 @@ const UserAndGroupInfo: React.FunctionComponent<IUserAndGroupInfoProps> = (props
     selectedUserContent = (
       <>
         <UserInfo
+          context={props.context}
           siteUserInfoPromise={userGroupLookup.getSpUserAndMemberGroupsPromise(siteUserId)}
           aadUserPromise={aadUserGroupLookup.getAadUser(email)}
         />
-        <UserGroupMemberships membershipsPromise={userGroupLookup.getUserMemberships(siteUserId, email)} />
+        <UserGroupMemberships
+          context={props.context}
+          membershipsPromise={userGroupLookup.getUserMemberships(siteUserId, email)}
+        />
       </>
     );
   } else {

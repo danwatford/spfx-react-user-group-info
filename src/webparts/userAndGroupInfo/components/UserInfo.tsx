@@ -1,19 +1,16 @@
 import * as React from "react";
 import { useState } from "react";
+import { WebPartContext } from "@microsoft/sp-webpart-base";
 import { ISiteUserInfo } from "@pnp/sp/site-users/types";
 import { IUser } from "@pnp/graph/users";
-
-import { DetailsList } from "office-ui-fabric-react/lib/DetailsList";
+import { DetailsList, IColumn } from "office-ui-fabric-react/lib/DetailsList";
+import { Link } from "office-ui-fabric-react";
 
 export interface IUserInfoProps {
+  context: WebPartContext;
   siteUserInfoPromise: Promise<ISiteUserInfo | undefined>;
   aadUserPromise: Promise<IUser>;
 }
-
-const userInfoColumns = [
-  { key: "propertyName", name: "Property", fieldName: "propertyName", minWidth: 100, maxWidth: 150, isResizable: true },
-  { key: "propertyValue", name: "Value", fieldName: "value", minWidth: 200, maxWidth: 1600, isResizable: true },
-];
 
 const UserInfo: React.FunctionComponent<IUserInfoProps> = (props) => {
   const [spLoading, setSpLoading] = useState(true);
@@ -21,6 +18,46 @@ const UserInfo: React.FunctionComponent<IUserInfoProps> = (props) => {
   const [spUserInfo, setSpUserInfo] = useState([]);
   const [aadLoading, setAadLoading] = useState(true);
   const [aadUserInfo, setAadUserInfo] = useState([]);
+
+  const renderValueCell = (item?: any) => {
+    switch (item.propertyName) {
+      case "SP Site UserId":
+        return (
+          <span>
+            <Link
+              target="_blank"
+              data-interception="off"
+              href={props.context.pageContext.web.absoluteUrl + "/_layouts/userdisp.aspx?ID=" + item.value}
+            >
+              {item.value}
+            </Link>
+          </span>
+        );
+
+      default:
+        return <span>{item.value}</span>;
+    }
+  };
+
+  const userInfoColumns: IColumn[] = [
+    {
+      key: "propertyName",
+      name: "Property",
+      fieldName: "propertyName",
+      minWidth: 100,
+      maxWidth: 150,
+      isResizable: true,
+    },
+    {
+      key: "propertyValue",
+      name: "Value",
+      fieldName: "value",
+      minWidth: 200,
+      maxWidth: 1600,
+      isResizable: true,
+      onRender: renderValueCell,
+    },
+  ];
 
   React.useEffect(() => {
     setSpLoading(true);

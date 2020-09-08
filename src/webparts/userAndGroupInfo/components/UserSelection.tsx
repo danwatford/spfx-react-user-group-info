@@ -1,7 +1,7 @@
 import * as React from "react";
 import { WebPartContext } from "@microsoft/sp-webpart-base";
 
-import { DefaultPalette, Stack, IStackStyles, IStackTokens, IStackItemStyles } from "office-ui-fabric-react";
+import { Stack } from "office-ui-fabric-react";
 import TenantUserPicker from "./TenantUserPicker";
 import SpUserGroupLookup from "../../../services/SpUserGroupLookup";
 import SiteUserPicker from "./SiteUserPicker";
