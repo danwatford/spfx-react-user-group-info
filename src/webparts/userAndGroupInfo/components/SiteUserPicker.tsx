@@ -49,7 +49,6 @@ const SiteUserPicker: React.FunctionComponent<ISiteUserPickerProps> = (props) =>
   };
 
   const personaClickedHandler = (siteUserInfo: ISiteUserInfo) => {
-    console.log("Click for " + siteUserInfo.Id);
     setSelectedUser(siteUserInfo);
     setIsOpen(false);
     props.onSelectedUserChanged(siteUserInfo.Id, siteUserInfo.Email);
