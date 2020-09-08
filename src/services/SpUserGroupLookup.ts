@@ -95,7 +95,7 @@ class SpUserGroupLookup {
   public async getSpSiteUserByLoginName(loginName: string): Promise<ISiteUserInfo | undefined> {
     try {
       const user = await sp.web.siteUsers.getByLoginName(loginName).get();
-      console.log("User is", user);
+      console.debug("Get SP site user by login name", loginName, user);
       return user;
     } catch (err) {
       console.debug("Exception when getting site user by loginName", loginName, err);
